@@ -1238,8 +1238,8 @@ export default function ProjectPage() {
           {/* 3. Terminal Area (With Vertical Resizer) */}
           {showTerminal && !isZenMode && (
             <div
-              style={{ height: `${terminalHeight}%` }}
-              className="border-t border-[var(--border-subtle)] bg-[#050505] flex flex-col absolute bottom-0 left-0 right-0 z-20 transition-[height] duration-75"
+              style={{ height: `${terminalHeight}%`, flexShrink: 0 }}
+              className="border-t border-[var(--border-subtle)] bg-[#050505] flex flex-col relative z-20 transition-[height] duration-75"
             >
               {/* Vertical Drag Handle */}
               <div
