@@ -702,6 +702,7 @@ export default function ProjectPage() {
     try {
       const res = await fetch('/api/chat', { method: 'POST', body: JSON.stringify({ prompt: finalPrompt, currentCode: content, language }) });
       const data = await res.json();
+      if (!res.ok || data.error) throw new Error(data.error || 'Unknown Error');
       setMessages(prev => [...prev, { role: 'assistant', content: data.explanation || 'Done.', code: data.code, isTyping: true, stdin: data.stdin }]);
     } catch (e: any) { setMessages(prev => [...prev, { role: 'assistant', content: `Error: ${e.message}` }]); }
     finally { setIsLoading(false); }
