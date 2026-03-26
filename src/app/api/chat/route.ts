@@ -84,6 +84,9 @@ Remember to return ONLY the JSON object.
 
     } catch (error: any) {
         console.error('Chat API Error:', error);
+        if (error.message?.includes('429')) {
+            return NextResponse.json({ error: '請求過度頻繁，請稍等 15 秒後再試。' }, { status: 500 });
+        }
         return NextResponse.json({ error: error.message }, { status: 500 });
     }
 }

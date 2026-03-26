@@ -152,6 +152,7 @@ export default function ProjectPage() {
   const router = useRouter();
   const editorRef = useRef<EditorHandle>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
+  const chatEndRef = useRef<HTMLDivElement>(null);
 
   const [content, setContent] = useState<string>('');
   const [language, setLanguage] = useState<string>('typescript');
@@ -581,6 +582,13 @@ export default function ProjectPage() {
       scrollRef.current.scrollIntoView({ behavior: 'smooth' });
     }
   }, [terminalOutput, showTerminal]);
+
+  // AI Chat Auto-scroll
+  useEffect(() => {
+    if (chatEndRef.current) {
+      chatEndRef.current.scrollIntoView({ behavior: 'smooth' });
+    }
+  }, [messages, isLoading]);
 
   // 6. Live Preview Builder
   useEffect(() => {
@@ -1469,6 +1477,7 @@ export default function ProjectPage() {
                   </div>
                 </div>
               )}
+              <div ref={chatEndRef} />
             </div>
             <div className="p-4 border-t border-[var(--border-subtle)] bg-black/40 backdrop-blur-xl">
               <div className="relative bg-white/5 border border-[var(--border-subtle)] rounded-2xl p-3 focus-within:border-[var(--accent)]/50 transition-all">
