@@ -23,6 +23,7 @@ Rules:
 5. If the user asks for a feature that requires multiple files (like an image asset), explain that this is a single-file prototype.
 6. STDIN MAGIC: If the current code or your new code requires user input (cin, scanf, input()), you are ENCOURAGED to provide a valid, multi-line test input in the "stdin" field to help the user test the program immediately.
 7. FORMATTING IMPORTANT: You MUST use "\n\n" to create paragraphs and use markdown bullet points (e.g., 1. 2. or - ) to format your "explanation" clearly. Never output a dense block of text!
+8. C++ SPECIFIC: When generating or fixing C++ code, you MUST always prefer to use \`using namespace std;\` after include statements.
 `;
 
 export async function POST(req: Request) {
