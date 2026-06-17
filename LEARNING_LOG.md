@@ -399,3 +399,20 @@
    我們特地建立了 `vercel.json`，強化對 `/api/*` 路徑的跨站請求配置。透過正確配置 `Access-Control-Allow-*` 與 `X-XSS-Protection` 等 Security Headers，我們不僅解決了在跨域 iframe 或外部呼叫時的 CORS 阻擋問題，更補強了上線後的站台防護力。
 
 這次的檢查再次印證：**「會動」只是基礎，「穩定、安全、可擴展」才是生產級應用的標準。**
+
+### 2026-06-18 更新：Wandbox 伺服器崩潰容錯與 Compiler Explorer/本地雙軌自動降級機制
+
+由於 Wandbox 後端平台頻繁出現全域性 OCI 容器資源耗盡錯誤 (`OCI runtime error: crun: clone: Resource temporarily unavailable`, Exit Code 126)，導致所有使用者不論執行何種語言甚至是最簡單的 `Hello World` 都會面臨執行失敗。為此，我們設計並實作了高可用的雙軌自動降級 (Automatic Compiler Fallback) 機制：
+
+1. **前端檢測與友善提示** (`src/app/[projectId]/page.tsx`)：
+   - 新增前端 OCI 異常與資源枯竭偵測 (`isWandboxOverloaded`)。當檢測到 Wandbox 崩潰時，在虛擬終端機輸出清晰的系統警示，並防止不必要的 AI Smart Debugging 流量浪費。
+   - 修正 C 語言編譯器對照（將預設 C++ 的 `gcc-13.2.0` 正確調整為獨立的 `gcc-13.2.0-c` 語言對照組）。
+
+2. **後端 API 雙軌降級引擎** (`src/app/api/run/route.ts`)：
+   - **雲端降級軌道 (Compiler Explorer Fallback)**：針對 C/C++ (`gcc-13.2.0`、`gcc-13.2.0-c`) 與 Python (`cpython-3.14.0`)，當 Wandbox 崩潰或回應非 200 時，API 會自動、透明地轉向 **Compiler Explorer (Godbolt.org)** API 進行沙盒編譯與執行，並完整支援 `stdin` 參數輸入。
+   - **本地端執行軌道 (Local Execution Fallback)**：針對 JavaScript/TypeScript (`nodejs-20.17.0`、`typescript-5.6.2`)，在 Wandbox 故障時直接於執行伺服器本機端調用 Node.js 或執行 `npx tsx`，獲得極高響應速度且不依賴第三方雲端編譯服務。
+   - **降級指示器**：在降級執行成功時，會自動在編譯器日誌最上方附加系統通知橫幅 (例如：`⚠️ [System: Wandbox is overloaded. Automatically fell back to Compiler Explorer (Godbolt) for execution.]`)，提供完整的系統透明度。
+
+3. **穩定性與相容性檢查**：
+   - 經本地 API 測試，C++ `Hello World` 成功在 Wandbox 故障時秒級無縫降級至 Godbolt，回傳預期的 stdout 且無損原有的 API 傳回值 Schema。
+   - 通過 `npx tsc --noEmit` 的嚴格 TypeScript 靜態類型檢查。
