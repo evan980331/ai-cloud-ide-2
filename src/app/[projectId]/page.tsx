@@ -81,7 +81,7 @@ const WANDBOX_LANG_MAP: Record<string, { compiler: string }> = {
   typescript: { compiler: 'typescript-5.6.2' },
   javascript: { compiler: 'nodejs-20.17.0' },
   python: { compiler: 'cpython-3.14.0' },
-  c: { compiler: 'gcc-13.2.0' },
+  c: { compiler: 'gcc-13.2.0-c' },
   cpp: { compiler: 'gcc-13.2.0' },
 };
 
@@ -960,7 +960,15 @@ export default function ProjectPage() {
           setTerminalOutput(prev => [...prev, { type: 'stdout', content: pMessage }]);
         }
 
-        if (pError || (cOutput && cOutput.toLowerCase().includes('error'))) {
+        const isWandboxOverloaded = (cOutput && (cOutput.includes('OCI runtime error') || cOutput.includes('Resource temporarily unavailable'))) ||
+                                    (pError && (pError.includes('OCI runtime error') || pError.includes('Resource temporarily unavailable')));
+
+        if (isWandboxOverloaded) {
+          setTerminalOutput(prev => [
+            ...prev,
+            { type: 'system', content: '⚠️ Wandbox 伺服器目前負載過高或正在維護中 (OCI runtime error: Resource temporarily unavailable)。請稍後再試，或更換其他語言環境。' }
+          ]);
+        } else if (pError || (cOutput && cOutput.toLowerCase().includes('error'))) {
           const errorMsg = cOutput || pError;
           setTerminalOutput(prev => [...prev, { type: 'system', content: '🤖 AI Smart Debugging Triggered...' }]);
           handleAiRefactor(`My code is having following errors. Please diagnose and provide a short fix with code: \n\nError Message:\n${errorMsg}`);
